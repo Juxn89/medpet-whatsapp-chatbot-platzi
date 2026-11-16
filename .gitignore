@@ -6,6 +6,9 @@ node_modules/
 .env.*
 !.env.example
 
+# Google service account credentials
+src/credentials/credentials.json
+
 # Logs
 logs/
 *.log
