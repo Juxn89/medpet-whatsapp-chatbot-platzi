@@ -3,11 +3,22 @@ import messageHandler from '../services/messageHandler.js';
 
 class WebhookController {
   async handleIncoming(req, res) {
-    const message = req.body.entry?.[0]?.changes[0]?.value?.messages?.[0];
-    const senderInfo = req.body.entry?.[0]?.changes[0]?.value?.contacts?.[0];
+    const value = req.body.entry?.[0]?.changes?.[0]?.value;
+    const message = value?.messages?.[0];
+    const senderInfo = value?.contacts?.[0];
+    const status = value?.statuses?.[0];
 
     if (message) {
-      await messageHandler.handleIncomingMessage(message, senderInfo);
+      const content = message.text?.body ?? message.interactive?.button_reply?.id ?? '';
+      console.log(`[webhook] Message from ${message.from} (${message.type}): ${content}`);
+      try {
+        await messageHandler.handleIncomingMessage(message, senderInfo);
+      } catch (error) {
+        console.error('[webhook] Error handling message:', error.message);
+      }
+    } else if (status?.status === 'failed') {
+      const detail = status.errors?.map((e) => `${e.code} ${e.title}`).join('; ');
+      console.error(`[webhook] Delivery failed to ${status.recipient_id}: ${detail}`);
     }
     res.sendStatus(200);
   }

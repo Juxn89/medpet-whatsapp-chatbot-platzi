@@ -14,9 +14,14 @@ const sendToWhatsApp = async (data) => {
             headers: headers,
             data,
         })
+        if (data.to) {
+            console.log(`[whatsapp] Sent ${data.type ?? 'text'} to ${data.to}`);
+        }
         return response.data;
     } catch (error) {
-        console.error(error)
+        const apiError = error.response?.data?.error;
+        const code = apiError?.code ? ` (code ${apiError.code})` : '';
+        console.error(`[whatsapp] API error ${error.response?.status ?? ''}: ${apiError?.message ?? error.message}${code}`);
     }
 };
 
